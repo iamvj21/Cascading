@@ -1,0 +1,75 @@
+﻿@model Cascading.Models.CountryStateCityViewModel
+
+@{
+    ViewData["Title"] = "Create";
+}
+
+<h1>Cascading Dropdowns</h1>
+
+<form method="post">
+    <div class="form-group">
+        <label for="country">Country:</label>
+        <select id="country" name="SelectedCountryId" asp-for="SelectedCountryId" class="form-control" onchange="getStatesByCountryId(this.value)">
+            <option value="0">-- Select Country --</option>
+            @foreach (var country in Model.Countries)
+            {
+                <option value="@country.CountryID">@country.CountryName</option>
+            }
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="state">State:</label>
+        <select id="state" name="SelectedStateId" asp-for="SelectedStateId" class="form-control" disabled onchange="getCitiesByStateId(this.value)">
+            <option value="0">-- Select State --</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="city">City:</label>
+        <select id="city" name="CityId" asp-for="CityId" class="form-control" disabled>
+            <option value="0">-- Select City --</option>
+        </select>
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        function getStatesByCountryId(countryId) {
+            $.ajax({
+                url: '/Drops/GetStatesByCountryId',
+                data: { countryId: countryId },
+                success: function (data)
+                {
+                    $('#state').prop('disabled', false);
+                    $('#city').empty();
+                    $('#city').prop('disabled', true);
+
+                    $.each(data.states, function (index, state) {
+                        $('#state').append($('<option></option>').val(state.stateID).text(state.stateName));
+                    });
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    console.error("Error getting states:", textStatus, errorThrown);
+                }
+            });
+        }
+
+        function getCitiesByStateId(stateId) {
+            $.ajax({
+                url: '/Drops/GetCitiesByStateId',
+                data: { stateId: stateId },
+                success: function (data) {
+                    $('#city').empty();
+                    $('#city').prop('disabled', false);
+
+                    $.each(data.cities, function (index, city) {
+                        $('#city').append($('<option></option>').val(city.cityID).text(city.cityName));
+                    });
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    console.error("Error getting cities:", textStatus, errorThrown);
+                }
+            });
+        }
+    </script>
+}
+
